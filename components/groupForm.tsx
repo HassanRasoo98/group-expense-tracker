@@ -1,9 +1,8 @@
 
 "use client";
 
-import { groupHandler } from "@/lib/groups";
+import { groupHandler } from "@/app/actions/groupHandler";
 import { useState } from "react";
-
 
 export default function GroupForm() {
   const [groupName, setGroupName] = useState("");
