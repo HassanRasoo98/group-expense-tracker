@@ -1,21 +1,35 @@
-
 "use client";
 
-import { groupHandler } from "@/app/actions/groupHandler";
 import { useState } from "react";
 
-export default function GroupForm() {
+export default function GroupForm({ user }: { user: any }) {
   const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
-      await groupHandler(formData); // Call the server function
+      const response = await fetch("/api/groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: groupName, user: user }), // Send group name
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create group");
+      }
+
+      setSuccess("Group created successfully!");
       setGroupName(""); // Clear input on success
+
     } catch (err: any) {
       setError(err.message || "An error occurred.");
     } finally {
@@ -24,10 +38,10 @@ export default function GroupForm() {
   };
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input
         type="text"
-        name="title"
+        name="name"
         value={groupName}
         onChange={(e) => setGroupName(e.target.value)}
         className="border p-2 rounded-md w-full"
@@ -42,6 +56,9 @@ export default function GroupForm() {
         {loading ? "Creating..." : "Create Group"}
       </button>
       {error && <p className="text-red-500 text-sm">{error}</p>}
+      {success && <p className="text-green-500 text-sm">{success}</p>}
     </form>
   );
 }
+
+
