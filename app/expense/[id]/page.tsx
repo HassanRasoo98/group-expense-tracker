@@ -13,10 +13,10 @@ export default async function Expenses({ params }: { params: { id: string } }) {
     return redirect("/sign-in");
   }
 
-  const groupId = params.id; // No need to destructure `id` separately
+  const { id } =  await params;
 
   // Fetch expenses from our API
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/expenses?group_id=${groupId}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/expenses?group_id=${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -49,7 +49,7 @@ export default async function Expenses({ params }: { params: { id: string } }) {
       </ul>
 
       {/* Passing groupId and user to ExpenseForm */}
-      <ExpenseForm groupId={groupId} user={user} />
+      <ExpenseForm groupId={id} user={user} />
     </div>
   );
 }

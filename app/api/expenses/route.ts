@@ -1,7 +1,24 @@
+// import { createClient } from "@/utils/supabase/server";
+
+// export async function GET(
+//   request: Request,
+//   { params }: { params: { group_id: string } }
+// ) {
+//   try {
+//     const { group_id } = await params;
+
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const groupId = searchParams.get("group_id");
+
+    // console.log("Group Id : ", groupId)
+
+    if (!groupId) {
+      return new Response(JSON.stringify({ error: "Missing group ID" }), { status: 400 });
+    }
     const supabase = await createClient();
 
     // Extract Authorization header
@@ -18,6 +35,7 @@ export async function GET(request: Request) {
       .from("expenses")
       .select("*")
       .eq("user_id", userId)
+      .eq("group_id", groupId)
       .order("created_at", { ascending: false });
 
     if (error) {
