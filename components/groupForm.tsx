@@ -33,6 +33,7 @@ export default function GroupForm({ user }: { user: any }) {
     } catch (err: any) {
       setError(err.message || "An error occurred.");
     } finally {
+
       setLoading(false);
     }
   };

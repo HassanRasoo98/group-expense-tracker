@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { expenseHandler } from "@/app/actions/expenseHandler";
 
-export default function ExpenseForm({ groupId }: { groupId: string }) {
+export default function ExpenseForm({ groupId, user }: { groupId: string; user: any }) {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -15,8 +15,8 @@ export default function ExpenseForm({ groupId }: { groupId: string }) {
     setError("");
 
     try {
-      formData.append("groupId", groupId); // Attach group ID
-      await expenseHandler(formData);
+      formData.append("groupId", groupId);
+      await expenseHandler(formData, user);
       setAmount("");
       setCategory("");
       setDescription("");
@@ -30,6 +30,7 @@ export default function ExpenseForm({ groupId }: { groupId: string }) {
   return (
     <form action={handleSubmit} className="space-y-4">
       <input type="hidden" name="groupId" value={groupId} />
+
       <input
         type="number"
         name="amount"

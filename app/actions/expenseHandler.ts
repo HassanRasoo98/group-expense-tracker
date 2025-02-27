@@ -1,31 +1,31 @@
 "use server";
 
-import { createExpense } from "@/lib/expenses";
-import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
 
-export const expenseHandler = async (formData: FormData) => {
-  const supabase = await createClient();
-
-    // Get authenticated user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-  
-    if (!user) {
-      console.log(user);
-
-      throw new Error("User not authenticated");
-    }
-
+export async function expenseHandler(formData: FormData, user: any) {
   const groupId = formData.get("groupId") as string;
-  const amount = parseFloat(formData.get("amount") as string);
+  const amount = formData.get("amount") as string;
   const category = formData.get("category") as string;
-  const description = formData.get("description") as string | undefined;
+  const description = formData.get("description") as string || "";
 
-  if (!groupId) throw new Error("Group ID is required");
-  if (isNaN(amount) || amount <= 0) throw new Error("Amount must be a positive number");
-  if (!category) throw new Error("Category is required");
+  if (!groupId || !amount || !category) {
+    throw new Error("Missing required fields.");
+  }
 
-  // Create expense in Supabase
-  return await createExpense(user.id, groupId, amount, category, description);
-};
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/expenses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${user.id}`,
+    },
+    body: JSON.stringify({ groupId, amount, category, description }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to add expense.");
+  }
+
+  revalidatePath("expenses")
+  return await res.json();
+}
