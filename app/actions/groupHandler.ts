@@ -1,28 +1,28 @@
-import { createGroup } from "@/lib/groups";
-import { createClient } from "@/utils/supabase/client";
+"use server";
 
-// Create New Group Helper
-export const groupHandler = async (formData: FormData) => {
-    const supabase = createClient();
-  
-    // Get authenticated user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-  
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-  
-    const name = formData.get("title") as string; // Assuming "title" is the group name
-  
-    if (!name || name.trim() === "") {
-      throw new Error("Group name is required");
-    }
-  
-    // Create group in Supabase
-    const newGroup = await createGroup(user.id, name);
-  
-    return newGroup;
-  };
-  
+import { revalidatePath } from "next/cache";
+
+export async function groupHandler(formData: FormData, user: any) {
+  const name = formData.get("name") as string;
+
+  if (!name) {
+    throw new Error("Missing required fields.");
+  }
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/groups`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${user.id}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to create group.");
+  }
+
+  revalidatePath("/groups")
+  return await res.json();
+}

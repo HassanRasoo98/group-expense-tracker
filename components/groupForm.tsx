@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { groupHandler } from "@/app/actions/groupHandler";
 
 export default function GroupForm({ user }: { user: any }) {
   const [groupName, setGroupName] = useState("");
@@ -8,38 +9,24 @@ export default function GroupForm({ user }: { user: any }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+  const handleSubmit = async (formData: FormData) => {
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      const response = await fetch("/api/groups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: groupName, user: user }), // Send group name
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create group");
-      }
-
+      await groupHandler(formData, user);
       setSuccess("Group created successfully!");
       setGroupName(""); // Clear input on success
-
     } catch (err: any) {
       setError(err.message || "An error occurred.");
     } finally {
-
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <input
         type="text"
         name="name"
@@ -61,5 +48,3 @@ export default function GroupForm({ user }: { user: any }) {
     </form>
   );
 }
-
-

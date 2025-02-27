@@ -40,19 +40,21 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { name, user } = await request.json();
+    const { name } = await request.json();
+
+    // Extract Authorization header
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Missing token" }), { status: 401 });
+    }
+
+    // Extract user ID from the token
+    const userId = authHeader.replace("Bearer ", "").trim();
 
     const supabase = await createClient();
 
-    // Verify the user is authenticated with Supabase
-    const { data: authUser, error } = await supabase.auth.getUser();
-
-    if (error) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403 });
-    }
-
     // Create group in Supabase
-    const newGroup = await createGroup(user.id, name);
+    const newGroup = await createGroup(userId, name);
 
     return new Response(JSON.stringify(newGroup), {
       headers: { "Content-Type": "application/json" },
